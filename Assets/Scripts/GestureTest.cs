@@ -5,17 +5,12 @@ using Leap;
 
 public class GestureTest : MonoBehaviour {
 
+    public float interval;
     public GameObject fire;
-    public GameObject ball;
-    public GameObject cube;
+    public GameObject magicalTeam;
 
-    public bool isLeftHold;
-    public bool isRightHold;
     Controller controller;
-    HandModel handModel;
-    GameObject leftFireInstance;
-    GameObject rightFireInstance;
-    GameObject cubeInstance;
+    Magic magic;
     float timer;
 
 	// Use this for initialization
@@ -27,74 +22,40 @@ public class GestureTest : MonoBehaviour {
 	void Update () {
         Frame frame = controller.Frame();
         HandList hands = frame.Hands;
-        List<Vector3> p = new List<Vector3>();
-        Vector3 velocity = Vector3.zero;
+        Hand leftHand = null, rightHand = null;
 
-        if (hands.Count > 1) {
-            for (int i = 0; i < hands.Count; i++) {
-                var pos = hands[i].PalmPosition.ToUnityScaled();
-                var normal = hands[i].PalmNormal.ToUnityScaled().normalized;
-                var v = hands[i].PalmVelocity.ToUnityScaled();
-
-                p.Add(pos * 15);
-
-                velocity = v + velocity;
-
-                //if (hands[i].IsLeft) {
-                //    isLeftHold = hands[i].GrabStrength > 0.5f;
-
-                //    if(!isLeftHold && !leftFireInstance)
-                //        leftFireInstance = Instantiate(fire, pos * 15 + normal, Quaternion.identity) as GameObject;
-                //    if(leftFireInstance) 
-                //        leftFireInstance.transform.position = pos * 15 + normal * 0.5f;
-                //    if (isLeftHold) Destroy(leftFireInstance);
-
-                //    var velocity = hands[i].PalmVelocity.ToUnityScaled();
-                //    if (velocity.sqrMagnitude >= 0.5f && timer > 0.5f && !isLeftHold) {
-                //        var b = Instantiate(ball, pos * 15 + normal * 2, Quaternion.identity) as GameObject;
-                //        var body = b.GetComponent<Rigidbody>();
-                //        body.AddForce(normal * 1000);
-                //        timer = 0;
-                //    }
-                //} else if (hands[i].IsRight) { 
-                //    isRightHold = hands[i].GrabStrength > 0.5f;
-
-                //    if (!isRightHold && !rightFireInstance)
-                //        rightFireInstance = Instantiate(fire, pos * 15 + normal, Quaternion.identity) as GameObject;
-                //    if (rightFireInstance)
-                //        rightFireInstance.transform.position = pos * 15 + normal * 0.5f;
-                //    if (isRightHold) Destroy(rightFireInstance);
-
-                //    var velocity = hands[i].PalmVelocity.ToUnityScaled();
-                //    if (velocity.sqrMagnitude >= 0.5f && timer > 0.5f && !isRightHold) {
-                //        var b = Instantiate(ball, pos * 15 + normal * 2, Quaternion.identity) as GameObject;
-                //        var body = b.GetComponent<Rigidbody>();
-                //        body.AddForce(normal * 1000);
-                //        timer = 0;
-                //    }
-                //}
+        for (int i = 0; i < hands.Count; i++) {
+            if (hands[i].IsLeft) {
+                leftHand = hands[i];
+            } else if (hands[i].IsRight) {
+                rightHand = hands[i];
             }
+        }
 
-            var dis = (p[1] - p[0]);
-            if (!cubeInstance && timer >= 1.0f && dis.magnitude >= 2.0f) {
-                cubeInstance = Instantiate(cube, Vector3.zero, Quaternion.identity) as GameObject;
+        if (leftHand == null || rightHand == null) return;
+
+        var leftPos = leftHand.PalmPosition.ToUnityScaled() * 15;
+        var rightPos = rightHand.PalmPosition.ToUnityScaled() * 15;
+        var velocity = (leftHand.PalmVelocity + rightHand.PalmVelocity).ToUnityScaled() / 2;
+        var dis = (leftPos - rightPos);
+
+        if (magic == null && timer >= interval) {
+            if(dis.magnitude <= 3.0f && Vector3.Dot(leftHand.PalmNormal.ToUnity(), rightHand.PalmNormal.ToUnity()) < -0.1f) {
+                magic = new Fireball(leftHand, rightHand, 15, fire);
+            } else if(Vector3.Dot(leftHand.PalmNormal.ToUnity(), transform.forward) >= 0.8f) {
+                magic = new Shield(leftHand, rightHand, 15, magicalTeam);
+                (magic as Shield).forwerd = transform.forward;
             }
+        }
 
-            if (cubeInstance) {
-                cubeInstance.transform.position = (p[1] + p[0]) / 2;
-                cubeInstance.GetComponent<Ball>().scale = dis.magnitude;
-
-                if (velocity.magnitude / 2 >= 0.5f) {
-                    var body = cubeInstance.GetComponent<Rigidbody>();
-                    body.mass = dis.magnitude;
-                    body.AddForce((velocity / 2).normalized * 50, ForceMode.Impulse);
-                    cubeInstance.GetComponent<Collider>().isTrigger = false;
-                    cubeInstance = null;
-                    timer = 0;
-                }
+        if (magic != null) {
+            magic.Update(leftHand, rightHand);
+            var flag = magic.Action();
+            if (flag) {
+                magic.Destroy();
+                magic = null;
+                timer = 0;
             }
-        } else {
-            if (cubeInstance) Destroy(cubeInstance);
         }
 
         timer += Time.deltaTime;
