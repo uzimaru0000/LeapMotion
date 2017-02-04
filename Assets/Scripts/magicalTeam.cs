@@ -31,7 +31,7 @@ public class magicalTeam : MonoBehaviour {
 
         int i = 0;
 		foreach(Transform child in transform) {
-            child.Rotate(child.forward * speed * i * Time.deltaTime);
+            child.Rotate(Vector3.forward * speed * i * Time.deltaTime);
             i++;
         }
 

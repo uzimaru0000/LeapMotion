@@ -25,6 +25,7 @@ public class Fireball : Magic {
             var body = fireInstance.GetComponent<Rigidbody>();
             body.mass = dis.magnitude;
             body.AddForce(velocity.normalized * 50, ForceMode.Impulse);
+            Object.Destroy(body.gameObject, 5);
             fireInstance.GetComponent<Collider>().isTrigger = false;
             return true;
         }

@@ -5,21 +5,23 @@ using Leap;
 
 public class Shield : Magic {
 
-    public Vector3 forwerd;
-
+    Vector3 forwerd;
     GameObject magicalTeam;
 
-    public Shield(Hand _lHand, Hand _rHand, float _scale, GameObject _magicalTeam) : base(_lHand, _rHand, _scale) {
+    public Shield(Hand _lHand, Hand _rHand, float _scale, GameObject _magicalTeam, Vector3 _forwerd) : base(_lHand, _rHand, _scale) {
         magicalTeam = Object.Instantiate(_magicalTeam, Vector3.zero, Quaternion.identity) as GameObject;
+        forwerd = _forwerd;
     }
 
     public override bool Action() {
         var leftPos = leftHand.PalmPosition.ToUnityScaled() * scale;
         var leftNormal = leftHand.PalmNormal.ToUnity();
+        var rightPos = rightHand.PalmPosition.ToUnityScaled() * scale;
+        var rightNormal = rightHand.PalmNormal.ToUnity();
 
-        magicalTeam.transform.position = leftPos + leftNormal;
+        magicalTeam.transform.position = (leftPos + rightPos) / 2 + forwerd;
 
-        if(Vector3.Dot(forwerd, leftNormal) < 0.8f) {
+        if(Vector3.Dot(forwerd, leftNormal) < 0.5f || Vector3.Dot(forwerd, rightNormal) < 0.5f) {
             return true;
         }
         return false;
