@@ -10,7 +10,7 @@ public class Freeze : Magic {
     GameObject magicalTeam;
     GameObject iceParent;
 
-    public Freeze(Hand _lHand, Hand _rHand, float _scale, GameObject _magicalTeam, GameObject _ice) : base(_lHand, _rHand, _scale) {
+    public Freeze(Controller _controller , float _scale, GameObject _magicalTeam, GameObject _ice) : base(_controller, _scale) {
         ice = _ice;
         magicalTeam = Object.Instantiate(_magicalTeam, Vector3.zero, Quaternion.identity) as GameObject;
     }
@@ -23,7 +23,7 @@ public class Freeze : Magic {
         RaycastHit hit;
         int extendNum = leftHand.Fingers.Count(x => x.IsExtended);
 
-        if(extendNum > 1 && !iceParent) {
+        if(extendNum > 2 && !iceParent) {
             magicalTeam.GetComponent<magicalTeam>().Finish();
             return true;
         }

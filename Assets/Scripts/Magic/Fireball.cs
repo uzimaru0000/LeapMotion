@@ -7,7 +7,7 @@ public class Fireball : Magic {
 
     GameObject fireInstance;
 
-    public Fireball(Hand _lHand, Hand _rHand, float _scale, GameObject _fire) : base(_lHand, _rHand, _scale) {
+    public Fireball(Controller _controller, float _scale, GameObject _fire) : base(_controller, _scale) {
         fireInstance = Object.Instantiate(_fire, Vector3.zero, Quaternion.identity) as GameObject;
     }
 

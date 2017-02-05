@@ -8,7 +8,7 @@ public class Shield : Magic {
     Vector3 forwerd;
     GameObject magicalTeam;
 
-    public Shield(Hand _lHand, Hand _rHand, float _scale, GameObject _magicalTeam, Vector3 _forwerd) : base(_lHand, _rHand, _scale) {
+    public Shield(Controller _controller, float _scale, GameObject _magicalTeam, Vector3 _forwerd) : base(_controller, _scale) {
         magicalTeam = Object.Instantiate(_magicalTeam, Vector3.zero, Quaternion.identity) as GameObject;
         forwerd = _forwerd;
     }

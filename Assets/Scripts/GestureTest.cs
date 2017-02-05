@@ -13,6 +13,8 @@ public class GestureTest : MonoBehaviour {
     public GameObject ice;
     public GameObject lightningMagicalTeam;
     public GameObject lightning;
+    public GameObject summonMagicalTeam;
+    public GameObject golem;
 
     Controller controller;
     Magic magic;
@@ -39,37 +41,18 @@ public class GestureTest : MonoBehaviour {
 
         if (leftHand == null || rightHand == null) return;
 
-        var leftPos = leftHand.PalmPosition.ToUnityScaled() * 15;
-        var rightPos = rightHand.PalmPosition.ToUnityScaled() * 15;
-        var velocity = (leftHand.PalmVelocity + rightHand.PalmVelocity).ToUnityScaled() / 2;
-        var dis = (leftPos - rightPos);
-
         // 魔法の発動条件 
         if (timer >= interval) {
-            Fireball(() => dis.magnitude <= 3.0f && Vector3.Dot(leftHand.PalmNormal.ToUnity(), rightHand.PalmNormal.ToUnity()) < -0.1);
-            Shield(() => {
-                var leftDot = Vector3.Dot(leftHand.PalmNormal.ToUnity(), transform.forward);
-                var rightDot = Vector3.Dot(rightHand.PalmNormal.ToUnity(), transform.forward);
-                return leftDot >= 0.8f && rightDot >= 0.8f;
-            });
-            Freeze(() => {
-                int extendNum = leftHand.Fingers.Count(x => x.IsExtended);
-                bool isIndex = leftHand.Fingers
-                               .Where(x => x.IsExtended)
-                               .Where(x => x.Type() == Finger.FingerType.TYPE_INDEX).ToArray().Length == 1;
-                return extendNum == 1 && isIndex;
-            });
-            Lightning(() => {
-                int extendNum = rightHand.Fingers.Count(x => x.IsExtended);
-                bool isIndex = rightHand.Fingers
-                               .Where(x => x.IsExtended)
-                               .Where(x => x.Type() == Finger.FingerType.TYPE_INDEX).ToArray().Length == 1;
-                return extendNum == 1 && isIndex;
-            });
+            Fireball();
+            Shield();
+            Freeze();
+            Lightning();
+            Summon();
         }
 
+        // 魔法の更新
         if (magic != null) {
-            magic.Update(leftHand, rightHand);
+            magic.Update();
             var flag = magic.Action();
             if (flag) {
                 magic.Destroy();
@@ -82,27 +65,49 @@ public class GestureTest : MonoBehaviour {
 	}
 
     // --- 魔法呼び出し ---
-    void Fireball(System.Func<bool> func) {
-        if(func.Invoke() && magic == null) {
-            magic = new Fireball(leftHand, rightHand, 15, fire);
+    // 火
+    void Fireball() {
+        var leftPos = leftHand.PalmPosition.ToUnityScaled() * 15;
+        var rightPos = rightHand.PalmPosition.ToUnityScaled() * 15;
+        var dis = (leftPos - rightPos);
+        if(dis.magnitude <= 3.0f && Vector3.Dot(leftHand.PalmNormal.ToUnity(), rightHand.PalmNormal.ToUnity()) < -0.1 && magic == null) {
+            magic = new Fireball(controller, 15, fire);
         }
     }
-
-    void Shield(System.Func<bool> func) {
-        if(func.Invoke() && magic == null) {
-            magic = new Shield(leftHand, rightHand, 15, magicalTeam, transform.forward);
+    // 氷
+    void Freeze() {
+        int extendNum = leftHand.Fingers.Count(x => x.IsExtended);
+        bool isIndex = leftHand.Fingers
+                               .Where(x => x.IsExtended)
+                               .Where(x => x.Type() == Finger.FingerType.TYPE_INDEX).ToArray().Length == 1;
+        if(extendNum <= 2 && isIndex && magic == null) {
+            magic = new Freeze(controller, 15, iceMagicalTeam, ice);
         }
     }
-
-    void Freeze(System.Func<bool> func) {
-        if(func.Invoke() && magic == null) {
-            magic = new Freeze(leftHand, rightHand, 15, iceMagicalTeam, ice);
+    // 雷
+    void Lightning() {
+        int extendNum = rightHand.Fingers.Count(x => x.IsExtended);
+        bool isIndex = rightHand.Fingers
+                               .Where(x => x.IsExtended)
+                               .Where(x => x.Type() == Finger.FingerType.TYPE_INDEX).ToArray().Length == 1;
+        if(extendNum <= 2 && isIndex && magic == null) {
+            magic = new Lightning(controller, 15, lightningMagicalTeam, lightning);
         }
     }
-
-    void Lightning(System.Func<bool> func) {
-        if(func.Invoke() && magic == null) {
-            magic = new Lightning(leftHand, rightHand, 15, lightningMagicalTeam, lightning);
+    // シールド
+    void Shield() {
+        var leftDot = Vector3.Dot(leftHand.PalmNormal.ToUnity(), transform.forward);
+        var rightDot = Vector3.Dot(rightHand.PalmNormal.ToUnity(), transform.forward);
+        if(leftDot >= 0.8f && rightDot >= 0.8f && magic == null) {
+            magic = new Shield(controller, 15, magicalTeam, transform.forward);
+        }
+    }
+    // 召喚
+    void Summon() {
+        var leftNormal = leftHand.PalmNormal.ToUnity();
+        var rightNormal = rightHand.PalmNormal.ToUnity();
+        if(Vector3.Dot(leftNormal, Vector3.down) >= 0.8f && Vector3.Dot(rightNormal, Vector3.down) >= 0.8f && magic == null) {
+            magic = new Summon(controller, 15, summonMagicalTeam, golem);
         }
     }
 }

@@ -9,10 +9,9 @@ public class Lightning : Magic {
     GameObject magicalTeam;
     GameObject lightning;
 
-    public Lightning(Hand _lHand, Hand _rHand, float _scale, GameObject _magicalTeam, GameObject _lightning) : base(_lHand, _rHand, _scale) {
+    public Lightning(Controller _controller, float _scale, GameObject _magicalTeam, GameObject _lightning) : base(_controller, _scale) {
         magicalTeam = Object.Instantiate(_magicalTeam, Vector3.zero, Quaternion.identity) as GameObject;
         lightning = _lightning;
-        
     }
 
     public override bool Action() {
@@ -23,7 +22,7 @@ public class Lightning : Magic {
         RaycastHit hit;
         int extendNum = rightHand.Fingers.Count(x => x.IsExtended);
 
-        if (extendNum > 1) {
+        if (extendNum > 2) {
             magicalTeam.GetComponent<magicalTeam>().Finish();
             return true;
         }
@@ -36,7 +35,7 @@ public class Lightning : Magic {
             magicalTeam.transform.rotation = Quaternion.identity;
         }
 
-        if (velocity.y <= -0.5f) {
+        if (velocity.y <= -0.8f) {
             var pos = magicalTeam.transform.position;
             var rotation = Quaternion.FromToRotation(-Vector3.forward, Vector3.up);
             pos.y = 10;
